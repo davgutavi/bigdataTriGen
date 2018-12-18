@@ -4,6 +4,10 @@ from utilities.SparkSessionUtils import SparkUtils
 from pyspark.sql.functions import monotonically_increasing_id, lit
 
 
+sparkInitPath = "/Users/davgutavi/SparkSessionProperties.ini"
+#sparkInitPath = "/home/david/SparkSessionProperties.ini"
+
+
 class Dataset:
 
     def __init__(self, rootPath):
@@ -19,6 +23,7 @@ class Dataset:
         path = pathList[0]
 
         f = open(path, "r")
+
         firsLine = f.readline()
 
         delimiter = ","
@@ -43,8 +48,7 @@ class Dataset:
 
         st = StructType(sfList)
 
-        spark = SparkUtils("/home/david/SparkSessionProperties.ini")
-        sc = spark.sparkContext
+        spark = SparkUtils(sparkInitPath)
         session = spark.session
 
         path = pathList[0]
@@ -119,13 +123,11 @@ class Dataset:
 
         aux2 = self.dataset.GenId.isin(lg)
 
-        colN = len(self.dataset.columns)
-
         sl = []
         for i in lc: sl.append(self.dataset.columns[i])
 
         if indexCol:
-           sl.append(self.dataset.columns[colN-2])
-           sl.append(self.dataset.columns[colN-1])
+           sl.append(self.dataset.columns[len(self.dataset.columns)-1])
+           sl.append(self.dataset.columns[len(self.dataset.columns)-2])
 
         return self.dataset.select(sl).where(aux1).where(aux2)
