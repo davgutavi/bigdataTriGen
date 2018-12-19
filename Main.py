@@ -15,13 +15,6 @@ t1 = dt.getTGslices([0,1,2], [0,3,10,11],indexCol=False)
 t1.show(20)
 
 
-l = [1,2,3,4,5]
-
-print(*l)
-
-del l[len(l)-1]
-
-print(*l)
 
 
 #
