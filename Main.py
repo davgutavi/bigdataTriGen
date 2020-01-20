@@ -1,20 +1,29 @@
 from datasets.Dataset import Dataset
-
-#rootPath = "/home/david/Escritorio/microarray/0002/"
-rootPath = "/Users/davgutavi/Desktop/test/0002"
+from utilities.SparkUtils import SparkUtils
 
 
-dt = Dataset(rootPath)
-dt.dataset.show(5)
-
-st = dt.getTGCslices([0,1,2], [0,3,10,11],[0,2],indexCol=True)
-st.show(20)
-
-t1 = dt.getTGslices([0,1,2], [0,3,10,11],indexCol=False)
-t1.show(20)
+#rootPath = "/home/david/Escritorio/microarray/0002"
+#rootPath = "/Users/davgutavi/Desktop/test/0002"
+rootPath = "/Users/davgutavi/Desktop/BigDataCluGen/Datasets/elutriation/"
 
 
+# dt = Dataset(rootPath)
+# dt.dataset.show(5)
+# st = dt.getTimeIntanceAtributteSlices([0, 1, 2], [0, 3, 10, 11], [0, 2])
+# st.show(20)
+# t1 = dt.getTimeInstanceSlices([0, 1, 2], [0, 3, 10, 11], indexCol=True)
+# t1.show(20)
+sp = SparkUtils()
 
+
+
+df = sp.session.read \
+            .option("delimiter", ";") \
+            .option("ignoreLeadingWhiteSpace", "true") \
+            .option("ignoreTrailingWhiteSpace", "true") \
+            .csv(rootPath)
+
+df.show(5)
 
 #l = [1,2,3,4,5]
 #print(*l)

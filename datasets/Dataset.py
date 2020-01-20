@@ -1,33 +1,26 @@
 import os
 from pyspark.sql.types import *
-from utilities.SparkSessionUtils import SparkUtils
+from utilities.SparkUtils import SparkUtils
 from pyspark.sql.functions import monotonically_increasing_id, lit
 
-
-sparkInitPath = "/Users/davgutavi/SparkSessionProperties.ini"
+#sparkInitPath = "/Users/davgutavi/SparkSessionProperties.ini"
 #sparkInitPath = "/home/david/SparkSessionProperties.ini"
-
+sparkInitPath =  "/Users/davgutavi/Desktop/BigDataCluGen/SparkSessionProperties.ini"
 
 class Dataset:
 
     def __init__(self, rootPath):
 
         fileList = os.listdir(rootPath)
-
         pathList = []
 
         for e in fileList: pathList.append(os.path.join(rootPath, e))
-
         pathList.sort()
-
         path = pathList[0]
 
         f = open(path, "r")
-
         firsLine = f.readline()
-
         delimiter = ","
-
         firstList = firsLine.split(delimiter)
         if len(firstList) == 1:
             delimiter = ";"
@@ -48,7 +41,7 @@ class Dataset:
 
         st = StructType(sfList)
 
-        spark = SparkUtils(sparkInitPath)
+        spark = SparkUtils(initPath=sparkInitPath)
         session = spark.session
 
         path = pathList[0]
@@ -59,9 +52,7 @@ class Dataset:
             .option("ignoreTrailingWhiteSpace", "true") \
             .csv(path, schema=st)
 
-        self.dataset = df. \
-            withColumn("TimeId", lit(0)) \
-            .withColumn("GenId", monotonically_increasing_id())
+        self.dataset = df.withColumn("InstanceId", monotonically_increasing_id()).withColumn("TimeId", lit(0))
 
         for i in range(1, len(pathList) - 1):
             path = pathList[i]
@@ -72,11 +63,14 @@ class Dataset:
                 .option("ignoreTrailingWhiteSpace", "true") \
                 .csv(path, schema=st)
 
-            self.dataset = self.dataset.union(df \
-                                              .withColumn("TimeId", lit(i)) \
-                                              .withColumn("GenId", monotonically_increasing_id()))
+            #self.dataset = self.dataset.union(df \
+                                            # .withColumn("InstanceId", monotonically_increasing_id()) \
+                                            #.withColumn("TimeId", lit(i)))
 
-    def getTslicesT(self, lt, indexCol=True):
+            self.dataset = self.dataset.union(df.withColumn("InstanceId", monotonically_increasing_id()).withColumn("TimeId", lit(0)))
+
+
+    def getTimeSlices(self, lt, indexCol=True):
 
         aux = self.dataset.TimeId.isin(lt)
 
@@ -90,9 +84,9 @@ class Dataset:
         return self.dataset.select(sl).where(aux)
 
 
-    def getGslices(self, lg, indexCol=True):
+    def getInstanceSlices(self, lg, indexCol=True):
 
-        aux = self.dataset.GenId.isin(lg)
+        aux = self.dataset.InstanceId.isin(lg)
 
         sl = self.dataset.columns
 
@@ -102,11 +96,11 @@ class Dataset:
 
         return self.dataset.select(sl).where(aux)
 
-    def getTGslices(self, lt,lg, indexCol=True):
+    def getTimeInstanceSlices(self, lt, lg, indexCol=True):
 
         aux1 = self.dataset.TimeId.isin(lt)
 
-        aux2 = self.dataset.GenId.isin(lg)
+        aux2 = self.dataset.InstanceId.isin(lg)
 
         sl = self.dataset.columns
 
@@ -117,17 +111,17 @@ class Dataset:
         return self.dataset.select(sl).where(aux1).where(aux2)
 
 
-    def getTGCslices(self, lt, lg, lc, indexCol=True):
+    def getTimeIntanceAtributteSlices(self, lt, lg, lc, indexCol=True):
 
         aux1 = self.dataset.TimeId.isin(lt)
 
-        aux2 = self.dataset.GenId.isin(lg)
+        aux2 = self.dataset.InstanceId.isin(lg)
 
         sl = []
         for i in lc: sl.append(self.dataset.columns[i])
 
         if indexCol:
-           sl.append(self.dataset.columns[len(self.dataset.columns)-1])
            sl.append(self.dataset.columns[len(self.dataset.columns)-2])
+           sl.append(self.dataset.columns[len(self.dataset.columns)-1])
 
         return self.dataset.select(sl).where(aux1).where(aux2)
